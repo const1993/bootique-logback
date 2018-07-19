@@ -23,6 +23,7 @@ import ch.qos.logback.classic.Logger;
 import io.bootique.BQRuntime;
 import io.bootique.logback.LogbackModule;
 import io.bootique.test.junit.BQTestFactory;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -40,6 +41,11 @@ public class LogbackTestFactory extends BQTestFactory {
 
     public Logger newRootLogger(String config) {
         return newBQRuntime(config).getInstance(Logger.class);
+    }
+
+    public org.slf4j.Logger newChildLogger(String config, String name) {
+        BQRuntime bqRuntime = newBQRuntime(config);
+        return LoggerFactory.getLogger(name);
     }
 
     public BQRuntime newBQRuntime(String config) {

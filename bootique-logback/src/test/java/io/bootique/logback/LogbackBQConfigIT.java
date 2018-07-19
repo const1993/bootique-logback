@@ -63,6 +63,51 @@ public class LogbackBQConfigIT {
 	}
 
 	/**
+	 * Checks multi appender for child Loggers.
+	 * Should log to different files.
+	 *
+	 * It has three different cases:
+	 * 1 - If appender has no name it will be added to root logger and it will write logs from all sources.
+	 * 2 - If child appender has name, child has link to this appender and root has not, this appender will be added to this logger.
+	 * 3 - If appender has name and root logger has reference to this name it will be added to root logger and it will be newer added to child,
+	 * 	eaven if it will have reference to the same appender.
+	 */
+	@Test
+	public void testFileMultiAppender() {
+
+		LOGGER_STACK.prepareLogDir("target/logs/rotate");
+		Logger rootLogger = LOGGER_STACK.newRootLogger("classpath:io/bootique/logback/test-multi-file-appender.yml");
+		rootLogger.info("info-log-to-file");
+		Map<String, String[]> rootLogfileContents = LOGGER_STACK.loglines("target/logs/multi-file", "multi-");
+		LOGGER_STACK.stop();
+
+		assertEquals(4, rootLogfileContents.size());
+
+		checkContainsLog(rootLogfileContents, "multi-one.log", "ROOT: info-log-to-file");
+		checkContainsLog(rootLogfileContents, "multi-three.log", "ROOT: info-log-to-file");
+		checkContainsLog(rootLogfileContents, "multi-noname.log", "ROOT: info-log-to-file");
+
+		org.slf4j.Logger one = LOGGER_STACK.newChildLogger("classpath:io/bootique/logback/test-multi-file-appender.yml", "one");
+		one.info("info-log-to-file2");
+		Map<String, String[]> logfileContents = LOGGER_STACK.loglines("target/logs/multi-file", "multi-");
+		LOGGER_STACK.stop();
+
+		assertEquals(4, logfileContents.size());
+
+		checkContainsLog(logfileContents, "multi-one.log", "one: info-log-to-file2");
+		checkContainsLog(logfileContents, "multi-two.log", "one: info-log-to-file2");
+		checkContainsLog(logfileContents, "multi-three.log", "one: info-log-to-file2");
+		checkContainsLog(logfileContents, "multi-noname.log", "one: info-log-to-file2");
+	}
+
+	private void checkContainsLog(Map<String, String[]> logfileContents, String fileName, String logLine) {
+		String[] lines = logfileContents.get(fileName);
+		String oneLine = asList(lines).stream().collect(joining("\n"));
+
+		assertTrue("Unexpected logs: " + oneLine, oneLine.endsWith(logLine));
+	}
+
+	/**
 	 * Checks file appender with rolling policy "time" (TimeBasedRollingPolicy)
 	 *
 	 * This test makes 3 attempts of printing one log row each second.
