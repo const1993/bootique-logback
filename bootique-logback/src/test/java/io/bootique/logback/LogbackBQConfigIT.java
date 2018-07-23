@@ -73,31 +73,40 @@ public class LogbackBQConfigIT {
 	 * 	eaven if it will have reference to the same appender.
 	 */
 	@Test
-	public void testFileMultiAppender() {
+	public void testFileMultiAppender_Root() {
 
 		LOGGER_STACK.prepareLogDir("target/logs/multi-file");
 		Logger rootLogger = LOGGER_STACK.newRootLogger("classpath:io/bootique/logback/test-multi-file-appender.yml");
 		rootLogger.info("info-log-to-file");
-		Map<String, String[]> rootLogfileContents = LOGGER_STACK.loglines("target/logs/multi-file", "multi-");
-		LOGGER_STACK.stop();
-
-		assertEquals(4, rootLogfileContents.size());
-
-		checkContainsLog(rootLogfileContents, "multi-one.log", "ROOT: info-log-to-file");
-		checkContainsLog(rootLogfileContents, "multi-three.log", "ROOT: info-log-to-file");
-		checkContainsLog(rootLogfileContents, "multi-noname.log", "ROOT: info-log-to-file");
-
-		org.slf4j.Logger one = LOGGER_STACK.newChildLogger("classpath:io/bootique/logback/test-multi-file-appender.yml", "one");
-		one.info("info-log-to-file2");
 		Map<String, String[]> logfileContents = LOGGER_STACK.loglines("target/logs/multi-file", "multi-");
 		LOGGER_STACK.stop();
 
 		assertEquals(4, logfileContents.size());
 
-		checkContainsLog(logfileContents, "multi-one.log", "one: info-log-to-file2");
-		checkContainsLog(logfileContents, "multi-two.log", "one: info-log-to-file2");
-		checkContainsLog(logfileContents, "multi-three.log", "one: info-log-to-file2");
-		checkContainsLog(logfileContents, "multi-noname.log", "one: info-log-to-file2");
+		String rootLogLine = "ROOT: info-log-to-file";
+		checkContainsLog(logfileContents, "multi-one.log", rootLogLine);
+		checkContainsLog(logfileContents, "multi-three.log", rootLogLine);
+		checkContainsLog(logfileContents, "multi-noname.log", rootLogLine);
+		assertEquals(0,logfileContents.get("multi-two.log").length);
+	}
+
+	@Test
+	public void testFileMultiAppender_Child() {
+
+		LOGGER_STACK.prepareLogDir("target/logs/multi-file");
+		org.slf4j.Logger one = LOGGER_STACK.newChildLogger("classpath:io/bootique/logback/test-multi-file-appender.yml", "one");
+		one.info("info-log-to-file");
+		Map<String, String[]> logfileContents = LOGGER_STACK.loglines("target/logs/multi-file", "multi-");
+		LOGGER_STACK.stop();
+
+		assertEquals(4, logfileContents.size());
+
+		String logLine = "one: info-log-to-file";
+		checkContainsLog(logfileContents, "multi-one.log", logLine);
+		checkContainsLog(logfileContents, "multi-two.log", logLine);
+		checkContainsLog(logfileContents, "multi-three.log", logLine);
+		checkContainsLog(logfileContents, "multi-noname.log", logLine);
+
 	}
 
 	private void checkContainsLog(Map<String, String[]> logfileContents, String fileName, String logLine) {
