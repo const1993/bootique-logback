@@ -43,11 +43,6 @@ public class LogbackTestFactory extends BQTestFactory {
         return newBQRuntime(config).getInstance(Logger.class);
     }
 
-    public org.slf4j.Logger newChildLogger(String config, String name) {
-        BQRuntime bqRuntime = newBQRuntime(config);
-        return LoggerFactory.getLogger(name);
-    }
-
     public BQRuntime newBQRuntime(String config) {
         String arg0 = "--config=" + Objects.requireNonNull(config);
         return app(arg0).module(LogbackModule.class).createRuntime();

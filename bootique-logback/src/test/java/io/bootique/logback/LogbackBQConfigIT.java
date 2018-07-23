@@ -20,9 +20,11 @@
 package io.bootique.logback;
 
 import ch.qos.logback.classic.Logger;
+import io.bootique.BQRuntime;
 import io.bootique.logback.unit.LogbackTestFactory;
 import org.junit.Rule;
 import org.junit.Test;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Map;
@@ -46,9 +48,10 @@ public class LogbackBQConfigIT {
 	@Test
 	public void testFileAppender() {
 
-		LOGGER_STACK.prepareLogDir("target/logs/rotate");
 		Logger logger = LOGGER_STACK.newRootLogger("classpath:io/bootique/logback/test-file-appender.yml");
-		logger.info("info-log-to-file");
+        LOGGER_STACK.prepareLogDir("target/logs/rotate");
+
+        logger.info("info-log-to-file");
 
 		// must stop to ensure logs are flushed...
 		LOGGER_STACK.stop();
@@ -75,9 +78,9 @@ public class LogbackBQConfigIT {
 	@Test
 	public void testFileMultiAppender_Root() {
 
-		LOGGER_STACK.prepareLogDir("target/logs/multi-file");
 		Logger rootLogger = LOGGER_STACK.newRootLogger("classpath:io/bootique/logback/test-multi-file-appender.yml");
-		rootLogger.info("info-log-to-file");
+        LOGGER_STACK.prepareLogDir("target/logs/multi-file");
+        rootLogger.info("info-log-to-file");
 		Map<String, String[]> logfileContents = LOGGER_STACK.loglines("target/logs/multi-file", "multi-");
 		LOGGER_STACK.stop();
 
@@ -94,7 +97,9 @@ public class LogbackBQConfigIT {
 	public void testFileMultiAppender_Child() {
 
 		LOGGER_STACK.prepareLogDir("target/logs/multi-file");
-		org.slf4j.Logger one = LOGGER_STACK.newChildLogger("classpath:io/bootique/logback/test-multi-file-appender.yml", "one");
+        BQRuntime bqRuntime = LOGGER_STACK.newBQRuntime("classpath:io/bootique/logback/test-multi-file-appender.yml");
+
+        org.slf4j.Logger one = LoggerFactory.getLogger("one");
 		one.info("info-log-to-file");
 		Map<String, String[]> logfileContents = LOGGER_STACK.loglines("target/logs/multi-file", "multi-");
 		LOGGER_STACK.stop();
