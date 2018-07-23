@@ -75,7 +75,7 @@ public class LogbackBQConfigIT {
 	@Test
 	public void testFileMultiAppender() {
 
-		LOGGER_STACK.prepareLogDir("target/logs/rotate");
+		LOGGER_STACK.prepareLogDir("target/logs/multi-file");
 		Logger rootLogger = LOGGER_STACK.newRootLogger("classpath:io/bootique/logback/test-multi-file-appender.yml");
 		rootLogger.info("info-log-to-file");
 		Map<String, String[]> rootLogfileContents = LOGGER_STACK.loglines("target/logs/multi-file", "multi-");
