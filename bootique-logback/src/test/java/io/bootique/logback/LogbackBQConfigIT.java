@@ -47,9 +47,8 @@ public class LogbackBQConfigIT {
 
 	@Test
 	public void testFileAppender() {
-
+		LOGGER_STACK.prepareLogDir("target/logs/rotate");
 		Logger logger = LOGGER_STACK.newRootLogger("classpath:io/bootique/logback/test-file-appender.yml");
-        LOGGER_STACK.prepareLogDir("target/logs/rotate");
 
         logger.info("info-log-to-file");
 
@@ -77,12 +76,13 @@ public class LogbackBQConfigIT {
 	 */
 	@Test
 	public void testFileMultiAppender_Root() {
-
-		Logger rootLogger = LOGGER_STACK.newRootLogger("classpath:io/bootique/logback/test-multi-file-appender.yml");
         LOGGER_STACK.prepareLogDir("target/logs/multi-file");
+		Logger rootLogger = LOGGER_STACK.newRootLogger("classpath:io/bootique/logback/test-multi-file-appender.yml");
         rootLogger.info("info-log-to-file");
+
+        LOGGER_STACK.stop();
+
 		Map<String, String[]> logfileContents = LOGGER_STACK.loglines("target/logs/multi-file", "multi-");
-		LOGGER_STACK.stop();
 
 		assertEquals(4, logfileContents.size());
 
@@ -97,12 +97,15 @@ public class LogbackBQConfigIT {
 	public void testFileMultiAppender_Child() {
 
 		LOGGER_STACK.prepareLogDir("target/logs/multi-file");
-        BQRuntime bqRuntime = LOGGER_STACK.newBQRuntime("classpath:io/bootique/logback/test-multi-file-appender.yml");
+        LOGGER_STACK.newBQRuntime("classpath:io/bootique/logback/test-multi-file-appender.yml");
 
         org.slf4j.Logger one = LoggerFactory.getLogger("one");
-		one.info("info-log-to-file");
+
+        one.info("info-log-to-file");
+
+        LOGGER_STACK.stop();
+
 		Map<String, String[]> logfileContents = LOGGER_STACK.loglines("target/logs/multi-file", "multi-");
-		LOGGER_STACK.stop();
 
 		assertEquals(4, logfileContents.size());
 
